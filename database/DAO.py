@@ -1,30 +1,45 @@
 from database.DB_connect import DBConnect
-from model.object import Object
 from model.connessione import Connessione
+from model.object import Object
 
-class DAO():
+
+class DAO:
     def __init__(self):
         pass
 
     @staticmethod
-    def readConnessioni(objects_dict):
+    def readObjects():
         conn = DBConnect.get_connection()
         result = []
         cursor = conn.cursor(dictionary=True)
-        query = ''' SELECT eo1.object_id AS o1, eo2.object_id AS o2, COUNT(*) AS peso
-                    FROM exhibition eo1, exhibition eo2
-                    WHERE eo1.id_exhibition = eo2.id_exhibition
-                    AND eo2.id_exhibition < eo1.id_exhibition
-                    GROUP BY eo1.id_exhibition, eo2.id_exhibition'''
-
+        query = "SELECT * FROM objects"
         cursor.execute(query)
-
-        for row in cursor:
-            o1 = objects_dict[row['o1']]
-            o2 = objects_dict[row['o2']]
-            peso = row['peso']
-            result.append(Connessione(o1, o2, peso))
+        for row in cursor: # row è un dizionario
+            #result.append(Object(row["object_id"], row["object_name"]))
+            result.append(Object(**row)) # ** fa l'unpacking del dizionario
 
         cursor.close()
         conn.close()
         return result
+
+    @staticmethod
+    def readConnessioni(objects_dict): # Riceve la idMap degli Object
+        conn = DBConnect.get_connection()
+        result = []
+        cursor = conn.cursor(dictionary=True)
+        query = """ SELECT eo1.object_id AS o1, eo2.object_id AS o2, COUNT(*) AS peso
+                    FROM exhibition_objects eo1, exhibition_objects eo2 
+                    WHERE eo1.exhibition_id = eo2.exhibition_id 
+                    AND eo1.object_id < eo2.object_id 
+                    GROUP BY eo1.object_id, eo2.object_id"""
+        cursor.execute(query)
+
+        for row in cursor:
+           o1 = objects_dict[row["o1"]]
+           o2 = objects_dict[row["o2"]]
+           peso = row["peso"]
+           result.append(Connessione(o1, o2, peso))  #costruisce una Connessione
+
+        cursor.close()
+        conn.close()
+        return result # lista di oggetti di tipo Connessione

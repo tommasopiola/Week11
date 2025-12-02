@@ -9,12 +9,25 @@ class Controller:
         self._model = model
 
     def handleAnalizzaOggetti(self, e):
-        self._model.buildGrafo()
+        self._model.buildGrafo() # grafo costruito nel model
         self._view.txt_result.controls.clear()
         self._view.txt_result.controls.append(ft.Text(f"{self._model._grafo}"))
-        self._update_page()
+        self._view.update_page()
 
     def handleCompConnessa(self,e):
-        text._id = self._view.txtIdOggetto
+        text_id = self._view._txtIdOggetto.value
+        try:
+            id = int(text_id)
+            print(f"{id}")
+            # se sono qui posso usare id per le operazioni seguenti
+            numNodi = self._model.calcolaConnessa(id) # passo un id, non un oggetto
+            self._view.txt_result.controls.clear()
+            self._view.txt_result.controls.append(
+                ft.Text(f"Dim. componente connessa: {numNodi}"))
+            self._view.update_page()
 
 
+        except ValueError:
+            self._view.txt_result.controls.clear()
+            self._view.txt_result.controls.append(ft.Text("Inserisci un id valido"))
+            self._view.update_page()
